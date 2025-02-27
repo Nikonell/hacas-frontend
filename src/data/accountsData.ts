@@ -1,7 +1,0 @@
-import {type Account, AccountStatus} from "./accountsUI";
-
-export let accounts: Account[] = [
-    {id: 1, username: 'abuba', firstName: 'Абубачир', lastName: 'Трахов', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE},
-    {id: 2, username: 'abuba', firstName: 'Абубачир', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE},
-    {id: 3, username: 'abubaa', firstName: 'Абубачир', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.INACTIVE}
-]

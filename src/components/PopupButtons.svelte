@@ -28,7 +28,6 @@
     border: none;
     height: 36px;
     border-radius: 4px;
-    font-size: 20px;
     padding: 0 0 0 20px;
     gap: 20px;
     background: none;
