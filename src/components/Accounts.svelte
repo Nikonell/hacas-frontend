@@ -159,7 +159,7 @@
 {#if addingTheAccount}
     <input type="text" class="add-new-account" onkeydown={event => {if (event.key === 'Enter') {
         addingTheAccount = false
-        telegramKey = event.target.value;
+        if (event.target !== null) telegramKey = event.target.value;
         console.log(telegramKey)
     }}}>
 {/if}

@@ -1,7 +1,9 @@
 <script lang="ts">
     import Accounts from "../components/Accounts.svelte";
-    import deleteButton from "../../static/accounts/buttons/delete.svg";
+    import deleteIcon from "../../static/accounts/buttons/delete.svg";
+    import settingsIcon from "../placeholders/settings.svg";
     import {type Account, AccountStatus} from "../data/accountsUI";
+    import TextInput from "../components/TextInput.svelte";
 
     let searchText: string = $state("");
     let countOfSelectedAccounts: number = $state(0);
@@ -18,15 +20,20 @@
         {id: 6, username: 'abuba', firstName: 'ЯКОНЧ', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE}
     ]);
 
-    $inspect(selectedAccountIDs);
-
     const getFullName = (firstName: string, lastName: string) => {
         return firstName + (lastName ? ' ' + lastName : '');
     }
+
+    let betSize: string = $state("")
+    let minesAmount: string = $state("")
+    let stopAfter: string = $state("")
+    let stopTime: string = $state("")
+    let spamInterval: string = $state("")
+    let spamTime: string = $state("")
 </script>
 
 <aside>
-    <input type="text" class="text-input search" bind:value={searchText} />
+    <TextInput inputText={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
     <Accounts {searchText} bind:countOfSelectedAccounts={countOfSelectedAccounts} bind:selectingMode={selectingMode}
               bind:haveToDelete={haveToDelete} bind:accounts={accounts} bind:selectedAccountIDs={selectedAccountIDs} />
 </aside>
@@ -39,7 +46,7 @@
                 <button class="functional-button on">включить</button>
                 <button class="functional-button off">выключить</button>
                 <button class="delete" onclick={() => haveToDelete = true}>
-                    <img src="{deleteButton}" alt="delete">
+                    <img src={deleteIcon} alt="delete">
                 </button>
             {/if}
         </div>
@@ -57,61 +64,46 @@
         {/if}
     </div>
     <div class="account-placeholders">
-        <div class="large-box account-settings"></div>
-        <div class="small-box top account-balance"></div>
-        <div class="small-box middle-left account-wins"></div>
-        <div class="small-box middle-right account-losses"></div>
-        <div class="small-box bottom account-status"></div>
+        <div class="large-box">
+            <div class="placeholder-name">
+                <img src={settingsIcon} alt="settings-icon">
+                <p>настройки</p>
+            </div>
+            <div class="placeholders">
+                <TextInput inputText={betSize} text="размер ставки" --background="url('/accounts/buttons/dollar-sign.svg') no-repeat right 20px center" --padding="20px 60px" />
+                <TextInput inputText={stopAfter} text="приостановка после" />
+                <TextInput inputText={spamInterval} text="интервал спама" />
+                <TextInput inputText={minesAmount} text="сколько мин" --background="url('/accounts/buttons/cpu.svg') no-repeat right 20px center" --padding="20px 60px" />
+                <TextInput inputText={stopTime} text="время приостановки" addonText="мин." />
+                <TextInput inputText={spamTime} text="время спама" addonText="мс." />
+            </div>
+        </div>
+        <div class="small-box top account-balance">
+
+        </div>
+        <div class="small-box middle-left"></div>
+        <div class="small-box middle-right"></div>
+        <div class="small-box bottom"></div>
     </div>
 </section>
 
 <style lang="scss">
-    :global(body) {
-      background-color: #0f0f0f;
-      height: 100vh;
-      margin: 0;
-      display: flex;
-    }
-
     aside {
       width: 520px;
       height: 100%;
       display: flex;
-      padding: 0 40px;
+      padding-right: 40px;
       flex-direction: column;
-    }
-
-    .text-input {
-      margin-top: 40px;
-      margin-bottom: 20px;
-      height: 52px;
-      border-radius: 12px;
-      border: none;
-      box-shadow: inset 0 0 0 1.4px #424242;
-      color: white;
-    }
-
-    .text-input:focus {
-      box-shadow: inset 0 0 0 1.4px #525252;
-      outline: none;
-    }
-
-    .search {
-      padding-left: 68px;
-      padding-right: 20px;
-      background: url('/accounts/buttons/search.svg') no-repeat 24px center;
-      background-size: 20px;
     }
 
     section {
       flex-grow: 1;
-      padding-right: 40px;
     }
 
     .header {
       display: flex;
       gap: 20px;
-      padding: 48px 0;
+      padding: 8px 0 48px;
       align-items: center;
       justify-content: space-between;
     }
@@ -180,9 +172,12 @@
     }
 
     .large-box {
+      grid-column: 1;
+      grid-row: span 3;
       background-color: #1c1c1c;
       border-radius: 10px;
-      height: auto;
+      height: 364px;
+      padding: 20px;
     }
 
     .small-box {
@@ -193,6 +188,7 @@
 
     .top {
       grid-column: 2;
+      grid-row: 1;
     }
 
     .middle-left {
@@ -211,6 +207,25 @@
     .bottom {
       grid-column: 2;
       grid-row: 3;
+    }
+
+    .placeholder-name {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+
+      img {
+        background-color: #3F3F3F;
+        width: 24px;
+        height: 24px;
+        padding: 4px;
+        border-radius: 4px;
+      }
+    }
+
+    .placeholders {
+      column-count: 2;
+      column-gap: 20px;
     }
 
 </style>

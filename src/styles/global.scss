@@ -23,3 +23,11 @@
   font-weight: normal;
   src: local('Futura PT Book'), url('/fonts/FuturaCyrillicBook.woff') format('woff');
 }
+
+body {
+  display: flex;
+  background-color: #0f0f0f;
+  height: 100vh;
+  margin: 0;
+  padding: 40px;
+}
