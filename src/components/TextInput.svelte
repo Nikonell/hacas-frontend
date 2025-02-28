@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type {FormEventHandler, KeyboardEventHandler} from "svelte/elements";
+
     interface Props {
         inputText: string
         text?: string
@@ -13,13 +15,15 @@
 
     let focus: boolean = $state(false);
 
-    function handleKeydown(event: KeyboardEvent) {
-        if (addonText && event.target !== null) {
-            if (!event.target.value.endsWith(` ${addonText}`)) {
-                event.target.value = event.target.value.trim() + ` ${addonText}`;
-                inputText = event.target.value;
-                event.target.setSelectionRange(event.target.value.length - addonText.length - 1, event.target.value.length - addonText.length - 1);
+    const handleKeydown: FormEventHandler<HTMLInputElement> = event => {
+        if (addonText && event.target !== null && event.data) {
+            if (!event.currentTarget.value.endsWith(` ${addonText}`)) {
+                event.currentTarget.value = event.currentTarget.value.trim() + ` ${addonText}`;
+                event.currentTarget.setSelectionRange(event.currentTarget.value.length - addonText.length - 1, event.currentTarget.value.length - addonText.length - 1);
             }
+        }
+        if (event.currentTarget.value === ` ${addonText}` && event.data === null) {
+            event.currentTarget.value = "";
         }
     }
 </script>
@@ -28,7 +32,7 @@
     {#if text}
         <p>{text}</p>
     {/if}
-    <input class:focus type="text" bind:value={inputText} onfocus={() => focus = true} onblur={() => focus = false} onkeydown={event => handleKeydown(event)}>
+    <input class:focus type="text" bind:value={inputText} onfocus={() => focus = true} onblur={() => focus = false} oninput={handleKeydown} />
 </label>
 
 <style lang="scss">
