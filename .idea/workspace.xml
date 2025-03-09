@@ -5,8 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c62d5a1d-b5ff-47d1-8717-1ffa0d9dd78a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/Card.svelte" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/data/CardsData.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/data/TextInputsData.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bun.lock" beforeDir="false" afterPath="$PROJECT_DIR$/bun.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Accounts.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Accounts.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/PopupButtons.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/PopupButton.svelte" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/TextInput.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/TextInput.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/accountsUI.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/accountsUI.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/placeholders/dollar-sign.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/cards/dollar-sign.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/placeholders/settings.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/cards/settings.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/placeholders/thumbs-down.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/cards/thumbs-down.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/placeholders/thumbs-up.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/cards/thumbs-up.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/placeholders/tool.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/cards/tool.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/styles/global.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/styles/global.scss" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +35,9 @@
         <option value="+layout" />
         <option value="TextInput" />
         <option value="TextInputTwo" />
+        <option value="Placeholder" />
+        <option value="TypeScript File" />
+        <option value="CardWrapper" />
       </list>
     </option>
   </component>
@@ -82,6 +100,13 @@
       <workItem from="1740577208108" duration="24581000" />
       <workItem from="1740667618754" duration="24620000" />
       <workItem from="1740693426469" duration="10584000" />
+      <workItem from="1740917364516" duration="10177000" />
+      <workItem from="1741019899177" duration="881000" />
+      <workItem from="1741072349612" duration="22878000" />
+      <workItem from="1741189215512" duration="16280000" />
+      <workItem from="1741257086995" duration="15844000" />
+      <workItem from="1741434552687" duration="24017000" />
+      <workItem from="1741531715030" duration="13439000" />
     </task>
     <servers />
   </component>

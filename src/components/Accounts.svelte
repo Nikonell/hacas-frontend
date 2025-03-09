@@ -2,15 +2,17 @@
     import {type Account, AccountStatus} from "../data/accountsUI";
     import {onMount} from "svelte";
     import {buttons} from "../data/PopupButtonsData";
-    import PopupButtons from "./PopupButtons.svelte";
+    import PopupButtons from "./PopupButton.svelte";
+    import {Socket} from "socket.io-client";
 
     interface Props {
         searchText: string;
         countOfSelectedAccounts: number;
         selectingMode: boolean;
         haveToDelete: boolean;
-        accounts: Account[]
-        selectedAccountIDs: number[]
+        accounts: Account[];
+        selectedAccountIDs: number[];
+        accountsSocket: Socket;
     }
 
     let {
@@ -19,7 +21,8 @@
         selectingMode = $bindable(),
         haveToDelete = $bindable(),
         accounts = $bindable(),
-        selectedAccountIDs = $bindable()
+        selectedAccountIDs = $bindable(),
+        accountsSocket
     }: Props = $props()
 
     let addingTheAccount = $state(false);
@@ -62,7 +65,9 @@
         return foundActive ? [foundActive.id] : (accounts.length ? [1] : []);
     }
 
-    selectedAccountIDs = getDefaultSelection();
+    $effect(() => {
+        selectedAccountIDs = getDefaultSelection();
+    })
 
     function removeAccount() {
         let selectedCopy: number[] = selectedAccountIDs
@@ -71,19 +76,19 @@
         if (selectedAccountIDs.length === 1) {
             const index = accounts.findIndex(account => account.id === selectedPopupAccountID);
             if (index === -1) return;
-            accounts.splice(index, 1);
+            console.log(selectedAccountIDs);
+            accountsSocket.emit("deleteAccount", selectedAccountIDs[0]);
         } else {
             selectedAccountIDs.forEach(selectedAccountID => {
                 const index = accounts.findIndex(account => account.id === selectedAccountID);
                 if (index === -1) return;
-                accounts.splice(index, 1);
+                accountsSocket.emit("deleteAccount", selectedAccountID);
             });
         }
 
         const firstAvailable = getDefaultSelection();
         if (haveToDelete) {
             countOfSelectedAccounts = 1;
-            console.log(countOfSelectedAccounts)
         }
 
         if (selectedPopupAccountID !== null && selectedCopy.includes(selectedPopupAccountID) && selectedCopy.length === 1) {
@@ -123,7 +128,7 @@
     }
 </script>
 
-<svelte:document onmouseup={() => selectingMode = false}/>
+<svelte:document onmouseup={() => selectingMode = false} />
 
 {#snippet accountsDisplay(accounts: Account[])}
     {#each accounts as account}
@@ -159,8 +164,10 @@
 {#if addingTheAccount}
     <input type="text" class="add-new-account" onkeydown={event => {if (event.key === 'Enter') {
         addingTheAccount = false
-        if (event.target !== null) telegramKey = event.target.value;
-        console.log(telegramKey)
+        if (event.target !== null) {
+            telegramKey = event.currentTarget.value;
+            accountsSocket.emit("createAccount", telegramKey);
+        }
     }}}>
 {/if}
 
@@ -225,6 +232,7 @@
   .side-card-text {
     display: flex;
     gap: 20px;
+    align-items: center;
 
     p {
       margin: 0;

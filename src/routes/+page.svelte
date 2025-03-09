@@ -1,9 +1,37 @@
 <script lang="ts">
     import Accounts from "../components/Accounts.svelte";
     import deleteIcon from "../../static/accounts/buttons/delete.svg";
-    import settingsIcon from "../placeholders/settings.svg";
     import {type Account, AccountStatus} from "../data/accountsUI";
     import TextInput from "../components/TextInput.svelte";
+    import {io, Socket} from "socket.io-client";
+    import Card from "../components/Card.svelte";
+    import {createTextInputs} from "../data/TextInputsData";
+    import {createCards} from "../data/CardsData";
+
+    let accounts: Account[] = $state([]);
+
+    const apiUrl = import.meta.env.VITE_WS_BASE_URL;
+    const accountsSocket: Socket = io(apiUrl + "/accounts", {transports: ["websocket"]});
+    const gameStateSocket: Socket = io(apiUrl + "/gameState", {transports: ["websocket"]});
+
+    accountsSocket.emit("getAccounts");
+    accountsSocket.on("getAccounts", (data: { accounts: Account[] }) => {
+        accounts = data.accounts;
+    })
+
+    accountsSocket.on("createAccount", (data: { id: number, account: Account }) => {
+        accounts.push(data.account);
+    })
+    accountsSocket.on("updateAccount", (data: { id: number, account: Account }) => {
+        const accountToUpdate: number | undefined = accounts.findIndex(account => account.id === data.id)
+        if (!accountToUpdate) return;
+        accounts[accountToUpdate] = data.account;
+    })
+    accountsSocket.on("deleteAccount", (data: { id: number }) => {
+        const accountToRemove: number | undefined = accounts.findIndex(account => account.id === data.id)
+        if (!accountToRemove) return;
+        accounts.splice(accountToRemove, 1);
+    })
 
     let searchText: string = $state("");
     let countOfSelectedAccounts: number = $state(0);
@@ -11,31 +39,47 @@
     let haveToDelete: boolean = $state(false);
     let selectedAccountIDs: number[] = $state([]);
 
-    let accounts: Account[] = $state([
-        {id: 1, username: 'abubaa', firstName: 'Абубачир', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.INACTIVE},
-        {id: 2, username: 'abubaa', firstName: 'Абубачир', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.INACTIVE},
-        {id: 3, username: 'abuba', firstName: 'Ыбыба', lastName: 'Трахов', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE},
-        {id: 4, username: 'abuba', firstName: 'Ыбыба', lastName: 'Трахов', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE},
-        {id: 5, username: 'abuba', firstName: 'ЯКОНЧ', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE},
-        {id: 6, username: 'abuba', firstName: 'ЯКОНЧ', lastName: '', avatarUrl: 'https://media.discordapp.net/attachments/1012689568740417546/1335981071833239552/clockawo_1.png?ex=67bbda14&is=67ba8894&hm=936cb94df7ad41cf3465dccd80bcf550a66bcb4ab857594e1af002a8364b2897&=&format=webp&quality=lossless&width=676&height=676', token: 'sagadsf', bet: 5, minesCount: 3, timeoutLoss: 12, timeoutPeriod: 23, spamInterval: 20, spamTime: 10, status: AccountStatus.ACTIVE}
-    ]);
-
     const getFullName = (firstName: string, lastName: string) => {
         return firstName + (lastName ? ' ' + lastName : '');
     }
 
-    let betSize: string = $state("")
-    let minesAmount: string = $state("")
-    let stopAfter: string = $state("")
-    let stopTime: string = $state("")
-    let spamInterval: string = $state("")
-    let spamTime: string = $state("")
+    let selected: Account | undefined = $derived(accounts.find(account => account.id === selectedAccountIDs[0]))
+
+    function createNumberInput<K extends keyof Account>(key: K) {
+        return {
+            get: () => selected?.[key] ?? 0,
+            set: (value: number | string) => {
+                if (selected) selected[key] = Number(value) as Account[K];
+            }
+        };
+    }
+
+    const textInputs = createTextInputs({
+        bet: createNumberInput("bet"),
+        minesCount: createNumberInput("minesCount"),
+        timeoutLoss: createNumberInput("timeoutLoss"),
+        timeoutPeriod: createNumberInput("timeoutPeriod"),
+        spamInterval: createNumberInput("spamInterval"),
+        spamTime: createNumberInput("spamTime"),
+    });
+
+    const cards = createCards(textInputs)
+
+    let statusChecker: boolean = $state(false);
+    $effect(() => {
+        if (selected) {
+            if (statusChecker) {
+                selected.status = AccountStatus.ACTIVE;
+                accountsSocket.emit("updateAccount", selected);
+            }
+        }
+    })
 </script>
 
 <aside>
-    <TextInput inputText={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
+    <TextInput stringInput={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
     <Accounts {searchText} bind:countOfSelectedAccounts={countOfSelectedAccounts} bind:selectingMode={selectingMode}
-              bind:haveToDelete={haveToDelete} bind:accounts={accounts} bind:selectedAccountIDs={selectedAccountIDs} />
+              bind:haveToDelete={haveToDelete} bind:accounts={accounts} bind:selectedAccountIDs={selectedAccountIDs} {accountsSocket} />
 </aside>
 
 <section>
@@ -58,32 +102,35 @@
         </div>
     </div>
     <div class="account-info">
-        {#if selectedAccountIDs.length}
-            <img class="avatar" src={accounts[selectedAccountIDs[0] - 1].avatarUrl} alt="avatar">
-            <p>{getFullName(accounts[selectedAccountIDs[0] - 1].firstName, accounts[selectedAccountIDs[0] - 1].lastName)}</p>
+        {#if selectedAccountIDs.length && accounts.length}
+            <img class="avatar" src={accounts.find(account => account.id === selectedAccountIDs[0])?.avatarUrl ?? ""} alt="avatar">
+            <p>{getFullName(accounts.find(account => account.id === selectedAccountIDs[0])?.firstName ?? "", accounts.find(account => account.id === selectedAccountIDs[0])?.lastName ?? "")}</p>
         {/if}
     </div>
-    <div class="account-placeholders">
-        <div class="large-box">
-            <div class="placeholder-name">
-                <img src={settingsIcon} alt="settings-icon">
-                <p>настройки</p>
+    <div class="account-cards">
+        {#each cards as card}
+            <div class={card.class}>
+                <Card icon={card.icon} title={card.title} text={card.text} tip={card.tip}>
+                    {#if card.content}
+                        <div class="text-inputs">
+                            {#each card.content as textInput}
+                                {#if textInput.addonText.length}
+                                    <TextInput bind:numberValue={textInput.inputText} text={textInput.text} addonText={textInput.addonText} style={textInput.style} {accountsSocket} {selected} />
+                                {:else}
+                                    <TextInput bind:numberValue={textInput.inputText} text={textInput.text} style={textInput.style} {accountsSocket} {selected} />
+                                {/if}
+                            {/each}
+                        </div>
+                    {/if}
+                    {#if card.toggle}
+                        <label class="toggle">
+                            <input type="checkbox" bind:checked={statusChecker} />
+                            <span class="slider"></span>
+                        </label>
+                    {/if}
+                </Card>
             </div>
-            <div class="placeholders">
-                <TextInput inputText={betSize} text="размер ставки" --background="url('/accounts/buttons/dollar-sign.svg') no-repeat right 20px center" --padding="20px 60px" />
-                <TextInput inputText={stopAfter} text="приостановка после" />
-                <TextInput inputText={spamInterval} text="интервал спама" />
-                <TextInput inputText={minesAmount} text="сколько мин" --background="url('/accounts/buttons/cpu.svg') no-repeat right 20px center" --padding="20px 60px" />
-                <TextInput inputText={stopTime} text="время приостановки" addonText="мин." />
-                <TextInput inputText={spamTime} text="время спама" addonText="мс." />
-            </div>
-        </div>
-        <div class="small-box top account-balance">
-
-        </div>
-        <div class="small-box middle-left"></div>
-        <div class="small-box middle-right"></div>
-        <div class="small-box bottom"></div>
+        {/each}
     </div>
 </section>
 
@@ -162,7 +209,7 @@
       border-radius: 100%;
     }
 
-    .account-placeholders {
+    .account-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-rows: auto auto auto;
@@ -176,7 +223,7 @@
       grid-row: span 3;
       background-color: #1c1c1c;
       border-radius: 10px;
-      height: 364px;
+      height: fit-content;
       padding: 20px;
     }
 
@@ -187,14 +234,19 @@
     }
 
     .top {
+      display: flex;
       grid-column: 2;
       grid-row: 1;
+      padding: 20px;
+      flex-direction: column;
+      background: linear-gradient(90deg, #1F1F1F 0%, #22271C 100%);
     }
 
     .middle-left {
       grid-column: 2;
       grid-row: 2;
       width: calc((100% - 40px) / 2);
+      padding: 20px;
     }
 
     .middle-right {
@@ -202,30 +254,56 @@
       grid-row: 2;
       justify-self: end;
       width: calc((100% - 40px) / 2);
+      padding: 20px;
     }
 
     .bottom {
+      display: flex;
       grid-column: 2;
       grid-row: 3;
+      padding: 20px;
+      position: relative;
+      flex-direction: column;
     }
 
-    .placeholder-name {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-
-      img {
-        background-color: #3F3F3F;
-        width: 24px;
-        height: 24px;
-        padding: 4px;
-        border-radius: 4px;
-      }
-    }
-
-    .placeholders {
+    .text-inputs {
       column-count: 2;
       column-gap: 20px;
+    }
+
+    .bottom {
+      mask: url("../cards/subtract.svg") center top no-repeat, linear-gradient(#000000, #000000);
+      mask-composite: exclude;
+      background: linear-gradient(90deg, #1f1f1f 0%, #27221c 100%);;
+    }
+
+    .toggle {
+      display: flex;
+      width: 48px;
+      height: 24px;
+      cursor: pointer;
+      padding: 6px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, 0);
+    }
+
+    .toggle input {
+      display: none;
+    }
+
+    .slider {
+      width: 12px;
+      height: 12px;
+      background-color: #424242;
+      border-radius: 50%;
+      transition: transform 0.3s, background-color 0.3s;
+
+      input:checked + & {
+        transform: translateX(24px);
+        background-color: #8CCC4C;
+      }
     }
 
 </style>

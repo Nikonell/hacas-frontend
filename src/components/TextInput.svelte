@@ -1,26 +1,53 @@
 <script lang="ts">
+    import type {Socket} from "socket.io-client";
+    import type {Account} from "../data/accountsUI";
     import type {FormEventHandler, KeyboardEventHandler} from "svelte/elements";
 
     interface Props {
-        inputText: string
+        stringInput?: string
+        numberValue?: number
         text?: string
         addonText?: string
+        style?: string
+        accountsSocket?: Socket
+        selected?: Account
     }
 
     let {
-        inputText = $bindable(),
+        stringInput,
+        numberValue = $bindable(),
         text,
-        addonText
+        addonText,
+        style,
+        accountsSocket,
+        selected
     }: Props = $props()
+
+    $effect(() => {
+        if (stringInput && accountsSocket) {
+            if (!addonText) {
+                numberValue = Number(stringInput.trim());
+            }
+            if (addonText && stringInput.includes(addonText)) {
+                numberValue = Number(stringInput.trim().slice(0, -addonText.length - 1));
+            }
+            if (addonText && !stringInput.includes(addonText)) {
+                numberValue = Number(stringInput.trim());
+            }
+            accountsSocket.emit("updateAccount", selected);
+        }
+        if (numberValue) {
+            stringInput = numberValue.toString()
+        }
+    })
 
     let focus: boolean = $state(false);
 
     const handleKeydown: FormEventHandler<HTMLInputElement> = event => {
-        if (addonText && event.target !== null && event.data) {
-            if (!event.currentTarget.value.endsWith(` ${addonText}`)) {
-                event.currentTarget.value = event.currentTarget.value.trim() + ` ${addonText}`;
-                event.currentTarget.setSelectionRange(event.currentTarget.value.length - addonText.length - 1, event.currentTarget.value.length - addonText.length - 1);
-            }
+        if (!addonText) return;
+        if (accountsSocket && event.data && !event.currentTarget.value.endsWith(` ${addonText}`)) {
+            event.currentTarget.value = event.currentTarget.value.trim() + ` ${addonText}`;
+            event.currentTarget.setSelectionRange(event.currentTarget.value.length - addonText.length - 1, event.currentTarget.value.length - addonText.length - 1);
         }
         if (event.currentTarget.value === ` ${addonText}` && event.data === null) {
             event.currentTarget.value = "";
@@ -32,7 +59,7 @@
     {#if text}
         <p>{text}</p>
     {/if}
-    <input class:focus type="text" bind:value={inputText} onfocus={() => focus = true} onblur={() => focus = false} oninput={handleKeydown} />
+    <input class:focus type="text" bind:value={stringInput} onfocus={() => focus = true} onblur={() => focus = false} oninput={handleKeydown} style={style} />
 </label>
 
 <style lang="scss">
@@ -62,11 +89,5 @@
 
   input {
     width: 100%;
-  }
-
-  img {
-    width: 20px;
-    pointer-events: none;
-    user-select: none;
   }
 </style>

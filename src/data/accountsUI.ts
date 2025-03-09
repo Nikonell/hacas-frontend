@@ -10,6 +10,7 @@ export interface Account {
     lastName: string;
     avatarUrl: string;
     token: string;
+    lifeTime: number;
     bet: number;
     minesCount: number;
     timeoutLoss: number;
