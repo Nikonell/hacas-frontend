@@ -4,7 +4,8 @@ export const createTextInputs = ({
                                      timeoutLoss,
                                      timeoutPeriod,
                                      spamInterval,
-                                     spamTime
+                                     spamTime,
+                                     lifeTime,
                                  }: {
     bet: { get: () => number; set: (value: number) => void };
     minesCount: { get: () => number; set: (value: number) => void };
@@ -12,6 +13,7 @@ export const createTextInputs = ({
     timeoutPeriod: { get: () => number; set: (value: number) => void };
     spamInterval: { get: () => number; set: (value: number) => void };
     spamTime: { get: () => number; set: (value: number) => void };
+    lifeTime: { get: () => number; set: (value: number) => void };
 }) => {
     const createInput = (get: () => number, set: (value: number) => void, text: string, style: string = '', addonText: string = '') => ({
         get inputText() {
@@ -27,10 +29,11 @@ export const createTextInputs = ({
 
     return [
         createInput(bet.get, bet.set, "размер ставки", "--background:url('/accounts/buttons/dollar-sign.svg') no-repeat right 20px center; --padding:20px 60px"),
+        createInput(minesCount.get, minesCount.set, "сколько мин", "--background:url('/accounts/buttons/cpu.svg') no-repeat right 20px center; --padding:20px 60px"),
         createInput(timeoutLoss.get, timeoutLoss.set, "приостановка после"),
         createInput(spamInterval.get, spamInterval.set, "интервал спама", "--margin:8px 0 0"),
-        createInput(minesCount.get, minesCount.set, "сколько мин", "--background:url('/accounts/buttons/cpu.svg') no-repeat right 20px center; --padding:20px 60px"),
         createInput(timeoutPeriod.get, timeoutPeriod.set, "время приостановки", '', 'мин.'),
-        createInput(spamTime.get, spamTime.set, "время спама", "--margin:8px 0 0", 'мс.')
+        createInput(spamTime.get, spamTime.set, "время спама", "--margin:8px 0 0", 'мс.'),
+        createInput(lifeTime.get, lifeTime.set, "время жизни", "--margin:8px 0 0", 'ч.')
     ];
 }

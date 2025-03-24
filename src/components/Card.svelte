@@ -8,6 +8,7 @@
         title: string;
         text?: string;
         tip?: string;
+        tipColor?: string;
         children?: Snippet;
     }
 
@@ -16,6 +17,7 @@
         title,
         text,
         tip,
+        tipColor,
         children
     }: Props = $props()
 
@@ -27,7 +29,7 @@
         <p>{title}</p>
     </div>
     {#if tip}
-        <p class="tip">{tip}</p>
+        <p class="tip" style="background-color: {tipColor}">{tip}</p>
     {/if}
 </div>
 {#if text}

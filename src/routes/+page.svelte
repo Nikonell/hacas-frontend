@@ -7,17 +7,21 @@
     import Card from "../components/Card.svelte";
     import {createTextInputs} from "../data/TextInputsData";
     import {createCards} from "../data/CardsData";
+    import {onMount} from "svelte";
+    import type {GameState} from "../data/gameStateUI";
+    import type {MouseEventHandler} from "svelte/elements";
 
     let accounts: Account[] = $state([]);
 
     const apiUrl = import.meta.env.VITE_WS_BASE_URL;
-    const accountsSocket: Socket = io(apiUrl + "/accounts", {transports: ["websocket"]});
-    const gameStateSocket: Socket = io(apiUrl + "/gameState", {transports: ["websocket"]});
+    const accountsSocket: Socket = io(apiUrl + "/accounts", {transports: ["websocket"], autoConnect: false});
+    const gameStateSocket: Socket = io(apiUrl + "/gameState", {transports: ["websocket"], autoConnect: false});
+
+    onMount(() => {
+        window.accountsSocket = accountsSocket;
+    })
 
     accountsSocket.emit("getAccounts");
-    accountsSocket.on("getAccounts", (data: { accounts: Account[] }) => {
-        accounts = data.accounts;
-    })
 
     accountsSocket.on("createAccount", (data: { id: number, account: Account }) => {
         accounts.push(data.account);
@@ -33,6 +37,66 @@
         accounts.splice(accountToRemove, 1);
     })
 
+    let gameIsActive: boolean = $state(false);
+    
+    const getStartButtonText = () => {
+        if (gameIsActive) return "стоп"
+        else return "старт"
+    }
+
+
+    let selected: Account | undefined = $derived(accounts.find(account => account.id === selectedAccountIDs[0]))
+
+    onMount(() => {
+        accountsSocket.connect()
+        setTimeout(() => gameStateSocket.connect(), 100)
+    })
+
+    let gameState: GameState | undefined = $state()
+
+    gameStateSocket.on("updateState", (data: GameState | { state: GameState } ) => {
+        const state = 'state' in data ? data.state : data;
+
+        gameState = state;
+
+        globalBalance = 0;
+        globalPlus = 0;
+        if (state.stats) {
+            Object.values(state.stats).forEach(o => {
+                globalBalance = globalBalance + o.currentBalance;
+                globalPlus = globalPlus + o.startBalance;
+            });
+            if (globalBalance < 0) {
+                globalBalance = 0
+                globalPlus = 0
+            }
+            globalPlus = globalBalance - globalPlus;
+        }
+
+        if (selected && state.stats?.[selected.id] && state.started) {
+            const stats = state.stats[selected.id]
+            const { currentBalance } = stats
+
+            const balanceCard = cards.find(card => card.title === "баланс")!
+
+            balanceCard.text = `${currentBalance === -1 ? 0 : currentBalance}$`;
+
+            const balancePercent = (currentBalance * 100) / stats.startBalance - 100
+            const balancePositive: boolean = balancePercent > 0;
+            balanceCard.tipColor = balancePositive ? "#8CCC4C" : "#C64444"
+            let startSym: string = balancePositive ? "+" : "-"
+
+            balanceCard.tip = `${startSym} ${balancePercent}$`;
+
+            const winsCard = cards.find(card => card.title === "выйгрыши")!
+            const lossesCard = cards.find(card => card.title === "проигрыши")!
+            winsCard.text = `${stats.wins}`;
+            lossesCard.text = `${stats.losses}`;
+        }
+
+        gameIsActive = state?.started;
+    })
+
     let searchText: string = $state("");
     let countOfSelectedAccounts: number = $state(0);
     let selectingMode: boolean = $state(false);
@@ -43,8 +107,6 @@
         return firstName + (lastName ? ' ' + lastName : '');
     }
 
-    let selected: Account | undefined = $derived(accounts.find(account => account.id === selectedAccountIDs[0]))
-
     function createNumberInput<K extends keyof Account>(key: K) {
         return {
             get: () => selected?.[key] ?? 0,
@@ -54,6 +116,9 @@
         };
     }
 
+    let globalBalance: number = $state(0)
+    let globalPlus: number = $state(0)
+
     const textInputs = createTextInputs({
         bet: createNumberInput("bet"),
         minesCount: createNumberInput("minesCount"),
@@ -61,25 +126,63 @@
         timeoutPeriod: createNumberInput("timeoutPeriod"),
         spamInterval: createNumberInput("spamInterval"),
         spamTime: createNumberInput("spamTime"),
+        lifeTime: createNumberInput("lifeTime")
     });
 
-    const cards = createCards(textInputs)
+    const cards = $state(createCards(textInputs))
 
-    let statusChecker: boolean = $state(false);
+    let statusBoolean: boolean = $state(false);
+
     $effect(() => {
-        if (selected) {
-            if (statusChecker) {
-                selected.status = AccountStatus.ACTIVE;
-                accountsSocket.emit("updateAccount", selected);
+        if (!selected) return;
+        statusBoolean = selected.status === AccountStatus.ACTIVE;
+        selected.status = statusBoolean ? AccountStatus.ACTIVE : AccountStatus.INACTIVE;
+
+        const card = cards.find(card => card.toggle);
+
+        if (!card) return;
+
+        if (statusBoolean) {
+            if (!gameIsActive) {
+                card.text = "включен";
+            } else {
+                card.text = (selected.id === gameState?.inGameAccount) ? "в игре" : "в ожидании";
             }
+        } else {
+            card.text = "выключен";
         }
-    })
+    });
+
+    const onInputChange = () => {
+        if (!selected) return;
+        selected.status = AccountStatus.INACTIVE;
+        accountsSocket.emit("updateAccount", selected);
+    }
+
+    function toggleStatus() {
+        statusBoolean = !statusBoolean;
+
+        if (selected) {
+            selected.status = statusBoolean ? AccountStatus.ACTIVE : AccountStatus.INACTIVE;
+            accountsSocket.emit("updateAccount", selected);
+        }
+    }
+    
+    const gameStateChanger: MouseEventHandler<HTMLButtonElement> = () => {
+        gameIsActive = !gameIsActive;
+        if (gameIsActive) {
+            gameStateSocket.emit("startGame");
+        } else {
+            gameStateSocket.emit("stopGame");
+        }
+    }
+
 </script>
 
 <aside>
-    <TextInput stringInput={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
-    <Accounts {searchText} bind:countOfSelectedAccounts={countOfSelectedAccounts} bind:selectingMode={selectingMode}
-              bind:haveToDelete={haveToDelete} bind:accounts={accounts} bind:selectedAccountIDs={selectedAccountIDs} {accountsSocket} />
+    <TextInput bind:stringInput={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
+    <Accounts {searchText} bind:countOfSelectedAccounts bind:selectingMode
+              bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} />
 </aside>
 
 <section>
@@ -96,9 +199,9 @@
         </div>
 
         <div class="header-things header-information">
-            <p>312.32$</p>
-            <p style="color: #8CCC4C">124.26$</p>
-            <button class="functional-button stop-game">стоп</button>
+            <p>{`${globalBalance}$`}</p>
+            <p style="color: #8CCC4C">{`${globalPlus}$`}</p>
+            <button class:gameIsActive class="functional-button stop-game" onclick={gameStateChanger}>{getStartButtonText()}</button>
         </div>
     </div>
     <div class="account-info">
@@ -110,21 +213,17 @@
     <div class="account-cards">
         {#each cards as card}
             <div class={card.class}>
-                <Card icon={card.icon} title={card.title} text={card.text} tip={card.tip}>
+                <Card icon={card.icon} title={card.title} text={card.text} tip={card.tip} tipColor={card.tipColor} >
                     {#if card.content}
                         <div class="text-inputs">
                             {#each card.content as textInput}
-                                {#if textInput.addonText.length}
-                                    <TextInput bind:numberValue={textInput.inputText} text={textInput.text} addonText={textInput.addonText} style={textInput.style} {accountsSocket} {selected} />
-                                {:else}
-                                    <TextInput bind:numberValue={textInput.inputText} text={textInput.text} style={textInput.style} {accountsSocket} {selected} />
-                                {/if}
+                                <TextInput bind:numberValue={textInput.inputText} text={textInput.text} addonText={textInput.addonText || undefined} style={textInput.style} {accountsSocket} {selected} {onInputChange} />
                             {/each}
                         </div>
                     {/if}
                     {#if card.toggle}
                         <label class="toggle">
-                            <input type="checkbox" bind:checked={statusChecker} />
+                            <input type="checkbox" bind:checked={statusBoolean} onchange={toggleStatus} />
                             <span class="slider"></span>
                         </label>
                     {/if}
@@ -190,7 +289,11 @@
     }
 
     .stop-game {
-      background-color: #C64444;
+      background-color: #8CCC4C;
+      
+      &.gameIsActive {
+        background-color: #C64444;
+      }
     }
 
     .account-info {
@@ -212,10 +315,8 @@
     .account-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: 116px 116px;
       gap: 40px;
-      width: 100%;
-      height: 250px;
     }
 
     .large-box {
@@ -267,8 +368,10 @@
     }
 
     .text-inputs {
-      column-count: 2;
-      column-gap: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 20px;
     }
 
     .bottom {

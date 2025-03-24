@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {Socket} from "socket.io-client";
-    import type {Account} from "../data/accountsUI";
-    import type {FormEventHandler, KeyboardEventHandler} from "svelte/elements";
+    import {type Account, AccountStatus} from "../data/accountsUI";
+    import type {FormEventHandler} from "svelte/elements";
 
     interface Props {
         stringInput?: string
@@ -11,39 +11,37 @@
         style?: string
         accountsSocket?: Socket
         selected?: Account
+        onInputChange?: () => void
     }
 
     let {
-        stringInput,
+        stringInput = $bindable(),
         numberValue = $bindable(),
         text,
         addonText,
         style,
         accountsSocket,
-        selected
+        selected,
+        onInputChange
     }: Props = $props()
 
     $effect(() => {
         if (stringInput && accountsSocket) {
-            if (!addonText) {
-                numberValue = Number(stringInput.trim());
-            }
-            if (addonText && stringInput.includes(addonText)) {
-                numberValue = Number(stringInput.trim().slice(0, -addonText.length - 1));
-            }
-            if (addonText && !stringInput.includes(addonText)) {
-                numberValue = Number(stringInput.trim());
-            }
+            numberValue = parseInt(stringInput)
+            if (selected?.status === AccountStatus.ACTIVE) return;
             accountsSocket.emit("updateAccount", selected);
         }
-        if (numberValue) {
-            stringInput = numberValue.toString()
+        if (stringInput === "") {
+            numberValue = undefined;
+        } else if (numberValue) {
+            stringInput = numberValue.toString();
         }
     })
 
     let focus: boolean = $state(false);
 
     const handleKeydown: FormEventHandler<HTMLInputElement> = event => {
+        onInputChange?.()
         if (!addonText) return;
         if (accountsSocket && event.data && !event.currentTarget.value.endsWith(` ${addonText}`)) {
             event.currentTarget.value = event.currentTarget.value.trim() + ` ${addonText}`;
@@ -64,6 +62,7 @@
 
 <style lang="scss">
   p {
+    padding-left: 20px;
     font-size: 20px;
     line-height: 20px;
     color: #424242;
@@ -76,7 +75,7 @@
     box-shadow: inset 0 0 0 1.4px #424242;
     color: white;
     padding-inline: var(--padding, 20px);
-    margin: var(--margin, 8px 0 20px 0);
+    margin: var(--margin, 8px 0 0 0);
     background: var(--background, none);
     background-size: 20px;
 
