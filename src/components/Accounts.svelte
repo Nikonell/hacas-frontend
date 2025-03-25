@@ -1,9 +1,9 @@
 <script lang="ts">
     import {type Account, AccountStatus} from "../data/accountsUI";
     import {buttons} from "../data/PopupButtonsData";
-    import PopupButtons from "./PopupButton.svelte";
     import {Socket} from "socket.io-client";
     import type {GameState} from "../data/gameStateUI";
+    import Popup from "./Popup.svelte";
 
     interface Props {
         searchText: string;
@@ -14,6 +14,9 @@
         selectedAccountIDs: number[];
         accountsSocket: Socket;
         gameState: GameState | undefined;
+        addingTheAccount: boolean;
+        onShowPopup?: (event: MouseEvent) => void;
+        removeAccount?: () => void;
     }
 
     let {
@@ -24,28 +27,18 @@
         accounts = $bindable(),
         selectedAccountIDs = $bindable(),
         accountsSocket,
-        gameState
+        gameState,
+        addingTheAccount = $bindable(false),
+        onShowPopup,
+        removeAccount = $bindable()
     }: Props = $props()
 
-    let addingTheAccount = $state(false);
-
-    let popupVisible = $state(false);
-    let popupX = $state(0);
-    let popupY = $state(0);
     let selectedPopupAccountID: number | null = null;
 
     let telegramKey: string | null = null;
 
-    function showPopup(event: MouseEvent) {
-        event.preventDefault(); // Отменяем стандартное контекстное меню
-        popupX = event.clientX;
-        popupY = event.clientY;
-        popupVisible = true;
-    }
-
-    function closePopup() {
-        popupVisible = false;
-    }
+    let showPopup: ((event: MouseEvent) => void) | undefined = $state();
+    let closePopup: (() => void) | undefined = $state();
 
     const getFullName = (firstName: string, lastName: string) => {
         return firstName + (lastName ? ' ' + lastName : '');
@@ -74,7 +67,7 @@
         selectedAccountIDs = getDefaultSelection();
     })
 
-    function removeAccount() {
+    removeAccount = () => {
         let selectedCopy: number[] = selectedAccountIDs
 
         // Удаление аккаунтов из списка
@@ -157,8 +150,6 @@
     }
 </script>
 
-<svelte:document onmouseup={() => selectingMode = false} onclick={closePopup} />
-
 {#snippet accountsDisplay(accounts: Account[])}
     {#each accounts as account}
         <a href="/"
@@ -167,7 +158,7 @@
                event.preventDefault();
                selectAccount(account.id, event)
            }}
-           oncontextmenu={(event) => showPopup(event)}
+           oncontextmenu={onShowPopup}
            onmousedown={event => {
                selectingMode = true;
                if (event.buttons === 2) selectedPopupAccountID = account.id;
@@ -195,7 +186,7 @@
         addingTheAccount = false
         if (event.target !== null) {
             telegramKey = event.currentTarget.value;
-            accountsSocket.emit("createAccount", telegramKey);
+            accountsSocket.emit("createAccount", { token: telegramKey });
         }
     }}}>
 {/if}
@@ -210,31 +201,6 @@
     <p class="inactive-separator">неактивные</p>
 {/if}
 {@render accountsDisplay(displayedAccounts.inactive)}
-
-{#if popupVisible}
-    <div class="popup" style="top: {popupY}px; left: {popupX}px;">
-        {#each buttons as button}
-            <PopupButtons
-                    icon={button.icon}
-                    text={button.text}
-                    color={button.color}
-                    onclick={() => {
-                    if (button.text === 'удалить') {
-                        removeAccount()
-                    } else if (button.text === 'выделить всё') {
-                        selectedAccountIDs = []
-                        countOfSelectedAccounts = accounts.length
-                        accounts.forEach((account) => {
-                            selectedAccountIDs.push(account.id)
-                        })
-                    } else if (button.text === "добавить") {
-                        addingTheAccount = true
-                    }
-                }}
-            ></PopupButtons>
-        {/each}
-    </div>
-{/if}
 
 <style lang="scss">
   .btn {
@@ -285,18 +251,6 @@
   .inactive-separator {
     margin: 28px 0 0;
     color: #424242;
-  }
-
-  .popup {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    box-shadow: inset 0 0 0 1.4px #424242;
-    background: #0F0F0F;
-    padding: 8px;
-    border-radius: 12px;
-    width: 200px;
-    z-index: 100;
   }
 
   .add-new-account {

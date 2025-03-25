@@ -10,6 +10,8 @@
     import {onMount} from "svelte";
     import type {GameState} from "../data/gameStateUI";
     import type {MouseEventHandler} from "svelte/elements";
+    import {buttons} from "../data/PopupButtonsData";
+    import Popup from "../components/Popup.svelte";
 
     let accounts: Account[] = $state([]);
 
@@ -177,12 +179,53 @@
         }
     }
 
+    let showPopup: ((event: MouseEvent) => void) | undefined = $state();
+    let closePopup: (() => void) | undefined = $state();
+
+    let removeAccount: (() => void) | undefined = $state();
+
+    let isAccountPopup: boolean = $state(false);
+
+    const showAccountPopup = (event: MouseEvent) => {
+        isAccountPopup = true;
+        if (!showPopup) return;
+        showPopup(event);
+    }
+
+    const showNonAccountPopup = (event: MouseEvent) => {
+        isAccountPopup = false;
+        if (!showPopup) return;
+        showPopup(event);
+    }
+
+    let addingTheAccount: boolean = $state(false);
+
+    const filteredPopupButtons = buttons.filter(button => button.text != "удалить");
+
 </script>
 
-<aside>
+<svelte:document onclick={closePopup} />
+
+<aside oncontextmenu={showNonAccountPopup}>
     <TextInput bind:stringInput={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
-    <Accounts {searchText} bind:countOfSelectedAccounts bind:selectingMode
-              bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} />
+    <Accounts onShowPopup={showAccountPopup} {searchText} bind:addingTheAccount bind:countOfSelectedAccounts bind:selectingMode
+              bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} bind:removeAccount />
+
+    <Popup buttons={isAccountPopup ? buttons : filteredPopupButtons} bind:showPopup bind:closePopup
+           onClick={button => {
+           if (button.text === 'удалить' && removeAccount) {
+               removeAccount()
+           } else if (button.text === 'выделить всё') {
+               selectedAccountIDs = []
+               countOfSelectedAccounts = accounts.length
+               accounts.forEach((account) => {
+                   selectedAccountIDs.push(account.id)
+               })
+           } else if (button.text === "добавить") {
+               addingTheAccount = true
+           }
+       }}
+    />
 </aside>
 
 <section>

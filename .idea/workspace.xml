@@ -5,14 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c62d5a1d-b5ff-47d1-8717-1ffa0d9dd78a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/data/accountStatsUI.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/data/gameStateUI.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Popup.svelte" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/Accounts.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Accounts.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Card.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Card.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/TextInput.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/TextInput.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/CardsData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/CardsData.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/TextInputsData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/TextInputsData.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/+page.svelte" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -30,6 +25,7 @@
         <option value="Placeholder" />
         <option value="CardWrapper" />
         <option value="TypeScript File" />
+        <option value="Popup" />
       </list>
     </option>
   </component>
@@ -103,7 +99,8 @@
       <workItem from="1741788407840" duration="18487000" />
       <workItem from="1741970001995" duration="2832000" />
       <workItem from="1742728676795" duration="418000" />
-      <workItem from="1742812335072" duration="28596000" />
+      <workItem from="1742812335072" duration="36445000" />
+      <workItem from="1742900234637" duration="2143000" />
     </task>
     <servers />
   </component>
