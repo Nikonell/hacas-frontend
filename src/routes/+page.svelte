@@ -12,6 +12,7 @@
     import type {MouseEventHandler} from "svelte/elements";
     import {buttons} from "../data/PopupButtonsData";
     import Popup from "../components/Popup.svelte";
+    import Timer from "../components/Timer.svelte";
 
     let accounts: Account[] = $state([]);
 
@@ -52,12 +53,24 @@
     onMount(() => {
         accountsSocket.connect()
         setTimeout(() => gameStateSocket.connect(), 100)
+        setInterval(() => nowTime = Date.now(), 1000);
     })
+
+    let startTime: Date | undefined = $state();
+    let nowTime: number = $state(Date.now());
+
+    let realDay = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 / 60 / 24 % 24))
+    let realHour = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 / 60 % 60))
+    let realMinute = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 % 60))
 
     let gameState: GameState | undefined = $state()
 
     gameStateSocket.on("updateState", (data: GameState | { state: GameState } ) => {
         const state = 'state' in data ? data.state : data;
+
+        if (state?.startTime) {
+            startTime = new Date(state?.startTime);
+        }
 
         gameState = state;
 
@@ -242,6 +255,7 @@
         </div>
 
         <div class="header-things header-information">
+            <Timer days={realDay} hours={realHour} minutes={realMinute} />
             <p>{`${globalBalance}$`}</p>
             <p style="color: #8CCC4C">{`${globalPlus}$`}</p>
             <button class:gameIsActive class="functional-button stop-game" onclick={gameStateChanger}>{getStartButtonText()}</button>

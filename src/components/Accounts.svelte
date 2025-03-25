@@ -60,8 +60,6 @@
         return foundActive ? [foundActive.id] : (accounts.length ? [accounts[0].id] : []);
     }
 
-    $inspect(accounts);
-
     accountsSocket.on("getAccounts", (data: { accounts: Account[] }) => {
         accounts = data.accounts;
         selectedAccountIDs = getDefaultSelection();
