@@ -1,18 +1,18 @@
 <script lang="ts">
-    import Accounts from "../components/Accounts.svelte";
-    import deleteIcon from "../../static/accounts/buttons/delete.svg";
-    import {type Account, AccountStatus} from "../data/accountsUI";
-    import TextInput from "../components/TextInput.svelte";
+    import Accounts from "$lib/components/Accounts.svelte";
+    import deleteIcon from "$lib/assets/svg/buttons/delete.svg";
+    import {type Account, AccountStatus} from "$lib/types/accountsUI";
+    import TextInput from "$lib/components/TextInput.svelte";
     import {io, Socket} from "socket.io-client";
-    import Card from "../components/Card.svelte";
-    import {createTextInputs} from "../data/TextInputsData";
-    import {createCards} from "../data/CardsData";
+    import Card from "$lib/components/Card.svelte";
+    import {createTextInputs} from "$lib/data/textInputsData";
+    import {createCards} from "$lib/data/cardsData";
     import {onMount} from "svelte";
-    import type {GameState} from "../data/gameStateUI";
+    import type {GameState} from "$lib/types/gameStateUI";
     import type {MouseEventHandler} from "svelte/elements";
-    import {buttons} from "../data/PopupButtonsData";
-    import Popup from "../components/Popup.svelte";
-    import Timer from "../components/Timer.svelte";
+    import {buttons} from "$lib/data/popupButtonsData";
+    import Popup from "$lib/components/Popup.svelte";
+    import Timer from "$lib/components/Timer.svelte";
 
     let accounts: Account[] = $state([]);
 
@@ -23,7 +23,8 @@
     accountsSocket.emit("getAccounts");
 
     accountsSocket.on("createAccount", (data: { id: number, account: Account }) => {
-        accounts.push(data.account);
+        accounts = [...accounts, data.account];
+        selectedAccountIDs = getDefaultSelection();
     })
     accountsSocket.on("updateAccount", (data: { id: number, account: Account }) => {
         const accountToUpdate: number | undefined = accounts.findIndex(account => account.id === data.id)
@@ -31,9 +32,7 @@
         accounts[accountToUpdate] = data.account;
     })
     accountsSocket.on("deleteAccount", (data: { id: number }) => {
-        const accountToRemove: number | undefined = accounts.findIndex(account => account.id === data.id)
-        if (!accountToRemove) return;
-        accounts.splice(accountToRemove, 1);
+        accounts = accounts.filter(account => account.id !== data.id);
     })
 
     let gameIsActive: boolean = $state(false);
@@ -192,6 +191,7 @@
     let closePopup: (() => void) | undefined = $state();
 
     let removeAccount: (() => void) | undefined = $state();
+    let getDefaultSelection: () => [number] | [] = $state(() => []);
 
     let isAccountPopup: boolean = $state(false);
 
@@ -216,9 +216,9 @@
 <svelte:document onclick={closePopup} />
 
 <aside oncontextmenu={showNonAccountPopup}>
-    <TextInput bind:stringInput={searchText} --background="url('/accounts/buttons/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
+    <TextInput bind:stringInput={searchText} --background="url('/svg/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
     <Accounts onShowPopup={showAccountPopup} {searchText} bind:addingTheAccount bind:countOfSelectedAccounts bind:selectingMode
-              bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} bind:removeAccount />
+              bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} bind:removeAccount bind:getDefaultSelection />
 
     <Popup buttons={isAccountPopup ? buttons : filteredPopupButtons} bind:showPopup bind:closePopup
            onClick={button => {
@@ -428,7 +428,7 @@
     }
 
     .bottom {
-      mask: url("../cards/subtract.svg") center top no-repeat, linear-gradient(#000000, #000000);
+      mask: url("../lib/assets/svg/cards/subtract.svg") center top no-repeat, linear-gradient(#000000, #000000);
       mask-composite: exclude;
       background: linear-gradient(90deg, #1f1f1f 0%, #27221c 100%);;
     }

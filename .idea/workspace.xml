@@ -5,7 +5,38 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c62d5a1d-b5ff-47d1-8717-1ffa0d9dd78a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/lib/types/numberAccessor.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/types/textComponentProps.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/dollar-sign.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/dollar-sign.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/settings.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/settings.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/subtract.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/subtract.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/thumbs-down.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/thumbs-down.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/thumbs-up.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/thumbs-up.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cards/tool.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/cards/tool.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Accounts.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Accounts.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Card.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Card.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Popup.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Popup.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/PopupButton.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/PopupButton.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/TextInput.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/TextInput.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Time.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Time.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Timer.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Timer.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/CardsData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/data/cardsData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/PopupButtonsData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/data/popupButtonsData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/TextInputsData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/data/textInputsData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/accountStatsUI.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/types/accountStatsUI.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/accountsUI.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/types/accountsUI.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/gameStateUI.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/types/gameStateUI.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/+layout.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/+layout.svelte" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/styles/global.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/css/global.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/add.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/buttons/add.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/choose-all.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/buttons/choose-all.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/cpu.svg" beforeDir="false" afterPath="$PROJECT_DIR$/static/svg/cpu.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/delete.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/assets/svg/buttons/delete.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/dollar-sign.svg" beforeDir="false" afterPath="$PROJECT_DIR$/static/svg/dollar-sign.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/buttons/search.svg" beforeDir="false" afterPath="$PROJECT_DIR$/static/svg/search.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/accounts/cookiemaillovve.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,10 +52,10 @@
         <option value="TextInputTwo" />
         <option value="Placeholder" />
         <option value="CardWrapper" />
-        <option value="TypeScript File" />
         <option value="Popup" />
         <option value="Timer" />
         <option value="Time" />
+        <option value="TypeScript File" />
       </list>
     </option>
   </component>
@@ -56,11 +87,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\static\accounts\buttons" />
+      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\static\svg" />
+      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\src\lib\assets\svg\buttons" />
+      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\src\svg" />
+      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\src\lib\assets\svg" />
       <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\src" />
-      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\static\accounts" />
-      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\static" />
-      <recent name="D:\OneDrive\Документы\GitHub\hacas-frontend\static\accounts\placeholders" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -99,7 +130,7 @@
       <workItem from="1741970001995" duration="2832000" />
       <workItem from="1742728676795" duration="418000" />
       <workItem from="1742812335072" duration="36445000" />
-      <workItem from="1742900234637" duration="9390000" />
+      <workItem from="1742900234637" duration="16976000" />
     </task>
     <servers />
   </component>
