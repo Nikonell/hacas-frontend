@@ -20,10 +20,6 @@
     const accountsSocket: Socket = io(apiUrl + "/accounts", {transports: ["websocket"], autoConnect: false});
     const gameStateSocket: Socket = io(apiUrl + "/gameState", {transports: ["websocket"], autoConnect: false});
 
-    onMount(() => {
-        window.accountsSocket = accountsSocket;
-    })
-
     accountsSocket.emit("getAccounts");
 
     accountsSocket.on("createAccount", (data: { id: number, account: Account }) => {
