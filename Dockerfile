@@ -1,32 +1,17 @@
-# Use the official Bun image as base
-FROM oven/bun:latest as build
+# Use the official Bun image
+FROM oven/bun:latest
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and lockfile
 COPY package.json bun.lockb* ./
 
-# Install dependencies
-RUN bun install --frozen-lockfile
-
-# Copy all project files
-COPY . .
-
-# Build the application
-RUN bun run build
-
-# Production stage
-FROM oven/bun:latest as production
-
-WORKDIR /app
-
-# Copy built assets from the build stage
-COPY --from=build /app/build ./build
-COPY --from=build /app/package.json ./
-
-# Install only production dependencies
+# Install production dependencies
 RUN bun install --frozen-lockfile --production
+
+# Copy pre-built application
+COPY build ./build
 
 # Expose port 3002
 EXPOSE 3002
