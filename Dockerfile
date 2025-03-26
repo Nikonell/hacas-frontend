@@ -6,13 +6,10 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm i
 
-# Copy app source
-COPY . .
-
-# Build the application
-RUN npm run build
+# Copy pre-built files from the build directory
+COPY build/ build/
 
 # Expose the port the app will run on
 EXPOSE 3002
