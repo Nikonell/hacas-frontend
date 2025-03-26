@@ -1,24 +1,21 @@
-# Use the official Bun image
-FROM oven/bun:latest
+# Use the official Node.js image as base
+FROM node:24-alpine
 
-# Set working directory
+# Create app directory inside the container
 WORKDIR /app
 
-# Copy package.json and lockfile
-COPY package.json bun.lockb* ./
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
 
-# Install production dependencies
-RUN bun install --frozen-lockfile --production
+# Copy app source
+COPY . .
 
-# Copy pre-built application
-COPY build ./build
+# Build the application
+RUN npm run build
 
-# Expose port 3002
-EXPOSE 3002
+# Expose the port the app will run on
+EXPOSE 3000
 
-# Set environment variables
-ENV PORT=3002
-ENV HOST=127.0.0.1
-
-# Start the application
-CMD ["bun", "./build/index.js"]
+# Set the command to run the app
+CMD ["node", "build/index.js"]
