@@ -28,8 +28,6 @@
     $effect(() => {
         if (stringInput && accountsSocket) {
             numberValue = parseInt(stringInput)
-            if (selected?.status === AccountStatus.ACTIVE) return;
-            accountsSocket.emit("updateAccount", selected);
         }
         if (stringInput === "") {
             numberValue = undefined;
