@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {type Account, AccountStatus} from "$lib/types/accountsUI";
+    import {type Account, AccountStatus} from "$lib/types/account";
     import {Socket} from "socket.io-client";
-    import type {GameState} from "$lib/types/gameStateUI";
+    import type {GameState} from "$lib/types/gameState";
+    import {buttons} from "$lib/data/popupButtonsData";
 
     interface Props {
         searchText: string;
-        countOfSelectedAccounts: number;
         selectingMode: boolean;
         haveToDelete: boolean;
         accounts: Account[];
@@ -20,7 +20,6 @@
 
     let {
         searchText,
-        countOfSelectedAccounts = $bindable(),
         selectingMode = $bindable(),
         haveToDelete = $bindable(),
         accounts = $bindable(),
@@ -33,12 +32,7 @@
         getDefaultSelection = $bindable()
     }: Props = $props()
 
-    let selectedPopupAccountID: number | null = null;
-
     let telegramKey: string | null = null;
-
-    let showPopup: ((event: MouseEvent) => void) | undefined = $state();
-    let closePopup: (() => void) | undefined = $state();
 
     const getFullName = (firstName: string, lastName: string) => {
         return firstName + (lastName ? ' ' + lastName : '');
@@ -66,32 +60,14 @@
     })
 
     removeAccount = () => {
-        let selectedCopy: number[] = selectedAccountIDs
-
         // Удаление аккаунтов из списка
-        if (selectedAccountIDs.length === 1) {
-            const index = accounts.findIndex(account => account.id === selectedPopupAccountID);
+        selectedAccountIDs.forEach(selectedAccountID => {
+            const index = accounts.findIndex(account => account.id === selectedAccountID);
             if (index === -1) return;
-            console.log(selectedAccountIDs);
-            accountsSocket.emit("deleteAccount", { id: selectedAccountIDs[0] });
-        } else {
-            selectedAccountIDs.forEach(selectedAccountID => {
-                const index = accounts.findIndex(account => account.id === selectedAccountID);
-                if (index === -1) return;
-                accountsSocket.emit("deleteAccount", { id: selectedAccountID });
-            });
-        }
+            accountsSocket.emit("deleteAccount", { id: selectedAccountID });
+        });
 
-        const firstAvailable = getDefaultSelection();
-        if (haveToDelete) {
-            countOfSelectedAccounts = 1;
-        }
-
-        if (selectedPopupAccountID !== null && selectedCopy.includes(selectedPopupAccountID) && selectedCopy.length === 1) {
-            selectedAccountIDs = firstAvailable;
-        } else if (selectedCopy.length > 1) {
-            selectedAccountIDs = firstAvailable;
-        }
+        selectedAccountIDs = getDefaultSelection();
     }
 
     const getAccountBalance = (id: number) => {
@@ -128,23 +104,22 @@
     selectingMode = false;
 
     function selectAccount(id: number, event: MouseEvent) {
-        if (selectingMode || event.ctrlKey && !selectedAccountIDs.includes(id)) {
+        if (!selectedAccountIDs.includes(id) && (event.buttons === 1 && selectingMode || event.buttons === 0 && event.ctrlKey)) {
             selectedAccountIDs.push(id);
-        } else if (event.ctrlKey && selectedAccountIDs.includes(id)) {
+            return;
+        }
+        if (event.buttons !== 0) return;
+        if (selectedAccountIDs.includes(id) && event.ctrlKey) {
             selectedAccountIDs = selectedAccountIDs.filter(accountId => accountId !== id);
-        } else {
-            selectedAccountIDs = [id];
+            selectingMode = false;
+            return;
         }
-
-        if (event.buttons === 2) {
-            selectedAccountIDs = [id];
-        }
-
-        countOfSelectedAccounts = selectedAccountIDs.length;
+        selectedAccountIDs = [id];
+        selectingMode = false;
     }
 
     function moveSelection(event: MouseEvent, account: Account) {
-        if (selectingMode && !selectedAccountIDs.includes(account.id) && event.buttons === 1) selectAccount(account.id, event);
+        if (selectingMode && !selectedAccountIDs.includes(account.id)) selectAccount(account.id, event);
     }
 </script>
 
@@ -157,13 +132,16 @@
                selectAccount(account.id, event)
            }}
            oncontextmenu={onShowPopup}
-           onmousedown={event => {
-               selectingMode = true;
-               if (event.buttons === 2) selectedPopupAccountID = account.id;
-               if (event.buttons === 2 && selectedPopupAccountID !== null && !selectedAccountIDs.includes(selectedPopupAccountID)) selectAccount(account.id, event)
-           }}
            onmousemove={event => moveSelection(event, account)}
-           ondragstart={event => event.preventDefault()}
+           onmousedown={event => {
+               if (event.buttons !== 2) return
+               selectingMode = false;
+               selectedAccountIDs = [account.id]
+           }}
+           ondragstart={event => {
+               event.preventDefault();
+               selectingMode = true;
+           }}
         >
             <div class="side-card-text left-text">
                 <img src={account.avatarUrl} alt="account icon" />

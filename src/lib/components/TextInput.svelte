@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {Socket} from "socket.io-client";
-    import {type Account, AccountStatus} from "$lib/types/accountsUI";
+    import {type Account, AccountStatus} from "$lib/types/account";
     import type {FormEventHandler} from "svelte/elements";
 
     interface Props {

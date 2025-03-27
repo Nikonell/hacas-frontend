@@ -1,4 +1,4 @@
-import type {AccountStats} from "./accountStatsUI";
+import type {AccountStats} from "./accountStats";
 
 export interface GameState {
     started: boolean;

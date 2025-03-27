@@ -1,14 +1,14 @@
 <script lang="ts">
     import Accounts from "$lib/components/Accounts.svelte";
     import deleteIcon from "$lib/assets/svg/buttons/delete.svg";
-    import {type Account, AccountStatus} from "$lib/types/accountsUI";
+    import {type Account, AccountStatus} from "$lib/types/account";
     import TextInput from "$lib/components/TextInput.svelte";
     import {io, Socket} from "socket.io-client";
     import Card from "$lib/components/Card.svelte";
     import {createTextInputs} from "$lib/data/textInputsData";
     import {createCards} from "$lib/data/cardsData";
     import {onMount} from "svelte";
-    import type {GameState} from "$lib/types/gameStateUI";
+    import type {GameState} from "$lib/types/gameState";
     import type {MouseEventHandler} from "svelte/elements";
     import {buttons} from "$lib/data/popupButtonsData";
     import Popup from "$lib/components/Popup.svelte";
@@ -54,7 +54,7 @@
     let startTime: Date | undefined = $state();
     let nowTime: number = $state(Date.now());
 
-    let realDay = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 / 60 / 24 % 24))
+    let realDay = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 / 60 / 24))
     let realHour = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 / 60 % 60))
     let realMinute = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 % 60))
 
@@ -108,7 +108,6 @@
     })
 
     let searchText: string = $state("");
-    let countOfSelectedAccounts: number = $state(0);
     let selectingMode: boolean = $state(false);
     let haveToDelete: boolean = $state(false);
     let selectedAccountIDs: number[] = $state([]);
@@ -141,18 +140,17 @@
 
     const cards = $state(createCards(textInputs))
 
-    let statusBoolean: boolean = $state(false);
+    let accountIsActive: boolean = $state(false);
 
     $effect(() => {
         if (!selected) return;
-        statusBoolean = selected.status === AccountStatus.ACTIVE;
-        selected.status = statusBoolean ? AccountStatus.ACTIVE : AccountStatus.INACTIVE;
+        accountIsActive = selected.status === AccountStatus.ACTIVE;
 
         const card = cards.find(card => card.toggle);
 
         if (!card) return;
 
-        if (statusBoolean) {
+        if (accountIsActive) {
             if (!gameIsActive) {
                 card.text = "включен";
             } else {
@@ -165,15 +163,17 @@
 
     const onInputChange = () => {
         if (!selected) return;
-        selected.status = AccountStatus.INACTIVE;
+        accounts = accounts.map(account => account.id === selected.id ? { ...account, status: AccountStatus.INACTIVE } : account);
         accountsSocket.emit("updateAccount", selected);
     }
 
     function toggleStatus() {
-        statusBoolean = !statusBoolean;
+        accountIsActive = !accountIsActive;
 
         if (selected) {
-            selected.status = statusBoolean ? AccountStatus.ACTIVE : AccountStatus.INACTIVE;
+            accounts = accounts.map(account => account.id === selected.id
+                ? { ...account, status: accountIsActive ? AccountStatus.ACTIVE : AccountStatus.INACTIVE }
+                : account);
             accountsSocket.emit("updateAccount", selected);
         }
     }
@@ -207,6 +207,9 @@
         showPopup(event);
     }
 
+    $inspect(selectedAccountIDs)
+    $inspect(selectingMode)
+
     let addingTheAccount: boolean = $state(false);
 
     const filteredPopupButtons = buttons.filter(button => button.text != "удалить");
@@ -217,7 +220,7 @@
 
 <aside oncontextmenu={showNonAccountPopup}>
     <TextInput bind:stringInput={searchText} --background="url('/svg/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
-    <Accounts onShowPopup={showAccountPopup} {searchText} bind:addingTheAccount bind:countOfSelectedAccounts bind:selectingMode
+    <Accounts onShowPopup={showAccountPopup} {searchText} bind:addingTheAccount bind:selectingMode
               bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} bind:removeAccount bind:getDefaultSelection />
 
     <Popup buttons={isAccountPopup ? buttons : filteredPopupButtons} bind:showPopup bind:closePopup
@@ -225,13 +228,9 @@
            if (button.text === 'удалить' && removeAccount) {
                removeAccount()
            } else if (button.text === 'выделить всё') {
-               selectedAccountIDs = []
-               countOfSelectedAccounts = accounts.length
-               accounts.forEach((account) => {
-                   selectedAccountIDs.push(account.id)
-               })
+               selectedAccountIDs = accounts.map(account => account.id)
            } else if (button.text === "добавить") {
-               addingTheAccount = true
+               addingTheAccount = true;
            }
        }}
     />
@@ -240,8 +239,8 @@
 <section>
     <div class="header">
         <div class="header-things">
-            {#if selectingMode === false && countOfSelectedAccounts > 1}
-                <p>выбрано: {countOfSelectedAccounts}</p>
+            {#if selectedAccountIDs.length > 1}
+                <p>выбрано: {selectedAccountIDs.length}</p>
                 <button class="functional-button on">включить</button>
                 <button class="functional-button off">выключить</button>
                 <button class="delete" onclick={() => haveToDelete = true}>
@@ -276,7 +275,7 @@
                     {/if}
                     {#if card.toggle}
                         <label class="toggle">
-                            <input type="checkbox" bind:checked={statusBoolean} onchange={toggleStatus} />
+                            <input type="checkbox" bind:checked={accountIsActive} onchange={toggleStatus} />
                             <span class="slider"></span>
                         </label>
                     {/if}
