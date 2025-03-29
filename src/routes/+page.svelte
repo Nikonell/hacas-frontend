@@ -9,7 +9,6 @@
     import {createCards} from "$lib/data/cardsData";
     import {onMount} from "svelte";
     import type {GameState} from "$lib/types/gameState";
-    import type {MouseEventHandler} from "svelte/elements";
     import {buttons} from "$lib/data/popupButtonsData";
     import Popup from "$lib/components/Popup.svelte";
     import Timer from "$lib/components/Timer.svelte";
@@ -28,27 +27,22 @@
     })
     accountsSocket.on("updateAccount", (data: { id: number, account: Account }) => {
         const accountToUpdate: number | undefined = accounts.findIndex(account => account.id === data.id)
-        if (!accountToUpdate) return;
+        if (accountToUpdate === -1) return;
         accounts[accountToUpdate] = data.account;
     })
     accountsSocket.on("deleteAccount", (data: { id: number }) => {
         accounts = accounts.filter(account => account.id !== data.id);
     })
 
-    let gameIsActive: boolean = $state(false);
-    
-    const getStartButtonText = () => {
-        if (gameIsActive) return "стоп"
-        else return "старт"
-    }
-
-
     let selected: Account | undefined = $derived(accounts.find(account => account.id === selectedAccountIDs[0]))
 
+    let accountIsActive: boolean = $derived(selected?.status === AccountStatus.ACTIVE);
+
     onMount(() => {
-        accountsSocket.connect()
-        setTimeout(() => gameStateSocket.connect(), 100)
-        setInterval(() => nowTime = Date.now(), 1000);
+        accountsSocket.connect();
+        setTimeout(() => gameStateSocket.connect(), 100);
+        const interval = setInterval(() => nowTime = Date.now(), 1000);
+        return () => clearInterval(interval);
     })
 
     let startTime: Date | undefined = $state();
@@ -59,6 +53,12 @@
     let realMinute = $derived(Math.round((nowTime - (startTime?.getTime() ?? nowTime)) / 1000 / 60 % 60))
 
     let gameState: GameState | undefined = $state()
+
+    let gameIsActive: boolean = $derived(gameState?.started ?? false);
+
+    const getStartButtonText = () => {
+        return gameIsActive ? "стоп" : "старт";
+    }
 
     gameStateSocket.on("updateState", (data: GameState | { state: GameState } ) => {
         const state = 'state' in data ? data.state : data;
@@ -103,8 +103,6 @@
             winsCard.text = `${stats.wins}`;
             lossesCard.text = `${stats.losses}`;
         }
-
-        gameIsActive = state?.started;
     })
 
     let searchText: string = $state("");
@@ -118,9 +116,24 @@
 
     function createNumberInput<K extends keyof Account>(key: K) {
         return {
-            get: () => selected?.[key] ?? 0,
+            get: () => {
+
+                if (!selected) return 0;
+                const foundAccount = accounts.find(account => account.id === selected.id);
+
+                //if (foundAccount) console.log(foundAccount[key])
+
+                return foundAccount ? foundAccount[key] : 0
+            },
             set: (value: number | string) => {
-                if (selected) selected[key] = Number(value) as Account[K];
+                //console.log(value);
+                //if (selected) selected[key] = Number(value) as Account[K];
+                if (!selected) return;
+                const foundAccount = accounts.find(account => account.id === selected.id);
+                if (foundAccount) {
+                    foundAccount[key] = Number(value) as Account[K];
+                }
+                //accounts.map(account => account.id === selected.id ? { ...account, [key]: Number(value) as Account[K] } : account);
             }
         };
     }
@@ -140,11 +153,8 @@
 
     const cards = $state(createCards(textInputs))
 
-    let accountIsActive: boolean = $state(false);
-
     $effect(() => {
         if (!selected) return;
-        accountIsActive = selected.status === AccountStatus.ACTIVE;
 
         const card = cards.find(card => card.toggle);
 
@@ -163,27 +173,20 @@
 
     const onInputChange = () => {
         if (!selected) return;
-        accounts = accounts.map(account => account.id === selected.id ? { ...account, status: AccountStatus.INACTIVE } : account);
+        accounts = accounts.map(account => account.id === selected.id
+            ? { ...account, status: AccountStatus.INACTIVE }
+            : account);
         accountsSocket.emit("updateAccount", selected);
     }
 
     function toggleStatus() {
-        accountIsActive = !accountIsActive;
+        const accountStatus = !accountIsActive;
 
         if (selected) {
             accounts = accounts.map(account => account.id === selected.id
-                ? { ...account, status: accountIsActive ? AccountStatus.ACTIVE : AccountStatus.INACTIVE }
+                ? { ...account, status: accountStatus ? AccountStatus.ACTIVE : AccountStatus.INACTIVE }
                 : account);
             accountsSocket.emit("updateAccount", selected);
-        }
-    }
-    
-    const gameStateChanger: MouseEventHandler<HTMLButtonElement> = () => {
-        gameIsActive = !gameIsActive;
-        if (gameIsActive) {
-            gameStateSocket.emit("startGame");
-        } else {
-            gameStateSocket.emit("stopGame");
         }
     }
 
@@ -207,9 +210,6 @@
         showPopup(event);
     }
 
-    $inspect(selectedAccountIDs)
-    $inspect(selectingMode)
-
     let addingTheAccount: boolean = $state(false);
 
     const filteredPopupButtons = buttons.filter(button => button.text != "удалить");
@@ -219,7 +219,7 @@
 <svelte:document onclick={closePopup} />
 
 <aside oncontextmenu={showNonAccountPopup}>
-    <TextInput bind:stringInput={searchText} --background="url('/svg/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
+    <TextInput bind:value={searchText} type="string" --background="url('/svg/search.svg') no-repeat 24px center" --margin="0 0 20px 0" --padding="68px 20px" />
     <Accounts onShowPopup={showAccountPopup} {searchText} bind:addingTheAccount bind:selectingMode
               bind:haveToDelete bind:accounts bind:selectedAccountIDs {accountsSocket} {gameState} bind:removeAccount bind:getDefaultSelection />
 
@@ -253,7 +253,7 @@
             <Timer days={realDay} hours={realHour} minutes={realMinute} />
             <p>{`${globalBalance}$`}</p>
             <p style="color: #8CCC4C">{`${globalPlus}$`}</p>
-            <button class:gameIsActive class="functional-button stop-game" onclick={gameStateChanger}>{getStartButtonText()}</button>
+            <button class:gameIsActive class="functional-button stop-game" onclick={() => gameStateSocket.emit(gameIsActive ? "stopGame" : "startGame")}>{getStartButtonText()}</button>
         </div>
     </div>
     <div class="account-info">
@@ -269,14 +269,14 @@
                     {#if card.content}
                         <div class="text-inputs">
                             {#each card.content as textInput}
-                                <TextInput bind:numberValue={textInput.inputText} text={textInput.text} addonText={textInput.addonText || undefined} style={textInput.style} {accountsSocket} {selected} {onInputChange} />
+                                <TextInput bind:value={textInput.inputText} type="number" text={textInput.text} addonText={textInput.addonText || undefined} style={textInput.style} {onInputChange} />
                             {/each}
                         </div>
                     {/if}
                     {#if card.toggle}
                         <label class="toggle">
-                            <input type="checkbox" bind:checked={accountIsActive} onchange={toggleStatus} />
-                            <span class="slider"></span>
+                            <input type="checkbox" onchange={toggleStatus} />
+                            <span class="slider" class:accountIsActive></span>
                         </label>
                     {/if}
                 </Card>
@@ -455,7 +455,7 @@
       border-radius: 50%;
       transition: transform 0.3s, background-color 0.3s;
 
-      input:checked + & {
+      &.accountIsActiveFromServer {
         transform: translateX(24px);
         background-color: #8CCC4C;
       }

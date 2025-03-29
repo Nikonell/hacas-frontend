@@ -1,53 +1,37 @@
 <script lang="ts">
-    import type {Socket} from "socket.io-client";
-    import {type Account, AccountStatus} from "$lib/types/account";
     import type {FormEventHandler} from "svelte/elements";
 
     interface Props {
         stringInput?: string
-        numberValue?: number
+        value?: string | number
         text?: string
         addonText?: string
         style?: string
-        accountsSocket?: Socket
-        selected?: Account
         onInputChange?: () => void
+        type: "string" | "number"
     }
 
     let {
-        stringInput = $bindable(),
-        numberValue = $bindable(),
+        stringInput,
+        value = $bindable(),
         text,
         addonText,
         style,
-        accountsSocket,
-        selected,
-        onInputChange
+        onInputChange,
+        type
     }: Props = $props()
-
-    $effect(() => {
-        if (stringInput && accountsSocket) {
-            numberValue = parseInt(stringInput)
-        }
-        if (stringInput === "") {
-            numberValue = undefined;
-        } else if (numberValue) {
-            stringInput = numberValue.toString();
-        }
-    })
 
     let focus: boolean = $state(false);
 
+    $effect(() => {
+        stringInput = (value ?? "").toString().trim() + (!focus && addonText ? ` ${addonText}` : "");
+    })
+
     const handleKeydown: FormEventHandler<HTMLInputElement> = event => {
+        if (!stringInput) return;
+        value = type === "number" ? parseInt(stringInput) : stringInput
+
         onInputChange?.()
-        if (!addonText) return;
-        if (accountsSocket && event.data && !event.currentTarget.value.endsWith(` ${addonText}`)) {
-            event.currentTarget.value = event.currentTarget.value.trim() + ` ${addonText}`;
-            event.currentTarget.setSelectionRange(event.currentTarget.value.length - addonText.length - 1, event.currentTarget.value.length - addonText.length - 1);
-        }
-        if (event.currentTarget.value === ` ${addonText}` && event.data === null) {
-            event.currentTarget.value = "";
-        }
     }
 </script>
 
